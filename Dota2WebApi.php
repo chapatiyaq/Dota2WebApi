@@ -16,7 +16,7 @@ $wgExtensionCredits['specialpage'][] = array(
 	'author' => '[http://wiki.teamliquid.net/starcraft2/User:ChapatiyaqPTSM Chapatiyaq] ',
 	'url' => 'http://wiki.teamliquid.net/starcraft2/',
 	'descriptionmsg' => 'dota2webapi-desc',
-	'version' => '0.0.1',
+	'version' => '0.1.0',
 );
 
 $dir = dirname(__FILE__) . '/';
