@@ -8,7 +8,6 @@ class ApiDota2WebApi extends ApiBase {
 	private $_player_summaries;
 	private $_player_names;
 	private $_result;
-	private $_error_msg;
 
 	private $cond_picks_bans = false, $cond_kills_deaths = false, $cond_players = false,
 		$cond_duration = false, $cond_radiant_win = false, $cond_teams = false,
@@ -37,8 +36,6 @@ class ApiDota2WebApi extends ApiBase {
 			array('isresult' => !$error ? 1 : 0));
 		$this->getResult()->addValue(null, $this->getModuleName(),
 			array('result' => $this->_result));
-		$this->getResult()->addValue(null, $this->getModuleName(),
-			array('errormsg' => $this->_error_msg));
 		
 		return true;
 	}
