@@ -1,0 +1,7 @@
+INSTALL
+
+1. Download and extract the files in a directory called Dota2WebApi in your extensions/ folder.
+2. Add the following code at the bottom of your LocalSettings.php:
+
+ require_once( "$IP/extensions/Dota2WebApi/Dota2WebApi.php" );
+ $wgDota2WebApiKey = /*Your Valve API key*/;
