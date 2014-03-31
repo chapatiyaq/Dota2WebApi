@@ -20,6 +20,42 @@ $(document).ready(function() {
 		$(this).siblings('.team2').text(team1);
 	});
 
+	function getHeroesData() {
+		var data = JSON.parse(mw.message('dota2webapi-heroes.json').plain())['heroes'],
+			hero, heroes = {};
+		console.log('heroes', data);
+		for (var i = 0; i < data.length; ++i) {
+			heroes[data[i].id] = data[i].localized_name.replace('\'', '');
+		}
+		return heroes;
+	}
+
+	function getItemsData() {
+		var data = JSON.parse(mw.message('dota2webapi-items.json').plain())['items'],
+			item, item_name, items = {};
+		console.log('items', data);
+		for (var i = 0; i < data.length; ++i) {
+			item_name = data[i].name.replace('_', ' ');
+			if (item_name.indexOf('recipe') == '0') {
+				item_name = 'recipe';
+			}
+			items[data[i].id] = item_name;
+		}
+
+		items[18]  = 'band of elvenskin';
+		items[26]  = 'morbid mask';
+		items[106] = 'necro1';
+		items[141] = 'daedalus';
+		items[149] = 'crystalys';
+		items[152] = 'shadow blade';
+		items[185] = 'drums';
+		items[193] = 'necro2';
+		items[194] = 'necro3';
+		items[196] = 'diffusal2';
+
+		return items;
+	}
+
 	function addToToolbarInsertFullMatchDetails() {
 		$( '#wpTextbox1' ).wikiEditor( 'addToToolbar', {
 			'section': 'advanced',
@@ -239,7 +275,9 @@ $(document).ready(function() {
 		var $status = $('#insert-full-match-details-dialog .dota2webapi-result td.status:eq(' + i + ')'),
 			$radiantTeam = $('#insert-full-match-details-dialog .dota2webapi-result td.radiant-team:eq(' + i + ')'),
 			$direTeam = $('#insert-full-match-details-dialog .dota2webapi-result td.dire-team:eq(' + i + ')'),
-			$matchData = $('#insert-full-match-details-dialog .dota2webapi-result td.match-data:eq(' + i + ')');
+			$matchData = $('#insert-full-match-details-dialog .dota2webapi-result td.match-data:eq(' + i + ')'),
+			heroes = getHeroesData(),
+			items = getItemsData();
 
 		$status.text('In progress...')
 			.addClass('loading');
@@ -270,23 +308,44 @@ $(document).ready(function() {
 
 				if ( result.picks_bans.radiant.pick_1 !== undefined ) {
 					radiantPicks = "{{MatchSeries/Picks";
-					for (var j = 1; j <= 5; ++j)
-						radiantPicks += '|' + j + '=' + result.picks_bans.radiant['pick_' + j].toLowerCase();
+					for (var j = 1; j <= 5; ++j) {
+						var hero;
+						radiantPicks += '|' + j + '=';
+						if ((heroId = result.picks_bans.radiant['pick_' + j]) !== null) {
+							if (heroes[heroId] !== undefined)
+								radiantPicks += heroes[heroId].toLowerCase();
+						}
+					}
 					radiantPicks += "}}\n";
 
 					direPicks = "{{MatchSeries/Picks";
-					for (var j = 1; j <= 5; ++j)
-						direPicks += '|' + j + '=' + result.picks_bans.dire['pick_' + j].toLowerCase();
+					for (var j = 1; j <= 5; ++j) {
+						direPicks += '|' + j + '=';
+						if ((heroId = result.picks_bans.dire['pick_' + j]) !== null) {
+							if (heroes[heroId] !== undefined)
+								direPicks += heroes[heroId].toLowerCase();
+						}
+					}
 					direPicks += "}}\n";
 
 					radiantBans = "{{MatchSeries/Bans";
-					for (var j = 1; j <= 5; ++j)
-						radiantBans += '|' + j + '=' + result.picks_bans.radiant['ban_' + j].toLowerCase();
+					for (var j = 1; j <= 5; ++j) {
+						radiantBans += '|' + j + '=';
+						if ((heroId = result.picks_bans.radiant['ban_' + j]) !== null) {
+							if (heroes[heroId] !== undefined)
+								radiantBans += heroes[heroId].toLowerCase();
+						}
+					}
 					radiantBans += "}}\n";
 
 					direBans = "{{MatchSeries/Bans";
-					for (var j = 1; j <= 5; ++j)
-						direBans += '|' + j + '=' + result.picks_bans.dire['ban_' + j].toLowerCase();
+					for (var j = 1; j <= 5; ++j) {
+						direBans += '|' + j + '=';
+						if ((heroId = result.picks_bans.dire['ban_' + j]) !== null) {
+							if (heroes[heroId] !== undefined)
+								direBans += heroes[heroId].toLowerCase();
+						}
+					}
 					direBans += "}}\n";
 				} else {
 					radiantPicks = '{{MatchSeries/Picks|1= |2= |3= |4= |5= }}\n';
@@ -304,7 +363,7 @@ $(document).ready(function() {
 						end += '|' + t + 'Player' + j + '=';
 						end += '{{MatchSeries/PlayerRow|player=';
 						end += player.name + ' ';
-						end += '|hero=' + player.hero.toLowerCase() + ' ';
+						end += '|hero=' + (heroes[player.hero] !== undefined ? heroes[player.hero].toLowerCase() : '') + ' ';
 						end += '|lvl='  + player.level;
 						end += '|k='    + player.kills;
 						end += '|d='    + player.deaths;
@@ -315,13 +374,17 @@ $(document).ready(function() {
 						end += '|xpm='  + player.xp_per_min;
 						end += '|items={{MatchSeries/Items';
 						for (var k = 1; k <= 6; ++k) {
-							end += '|' + k + '=' + player['item_' + k];
+							end += '|' + k + '=';
+							if (items[player['item_' + k]] !== undefined)
+								end += items[player['item_' + k]];
 						}
 						end += '}} ';
 						if (player.hero == 'Lone Druid') {
 							end += '|bearitems={{MatchSeries/Items';
 							for (var k = 1; k <= 6; ++k) {
-								end += '|' + k + '=' + player['bearitem_' + k];
+							end += '|' + k + '=';
+							if (items[player['bearitem_' + k]] !== undefined)
+								end += items[player['bearitem_' + k]];
 							}
 							end += '}} ';
 						}
@@ -563,7 +626,9 @@ $(document).ready(function() {
 		var $status = $('#insert-bracket-match-details-dialog .dota2webapi-result td.status:eq(' + i + ')'),
 			$radiantTeam = $('#insert-bracket-match-details-dialog .dota2webapi-result td.radiant-team:eq(' + i + ')'),
 			$direTeam = $('#insert-bracket-match-details-dialog .dota2webapi-result td.dire-team:eq(' + i + ')'),
-			$matchData = $('#insert-bracket-match-details-dialog .dota2webapi-result td.match-data:eq(' + i + ')');
+			$matchData = $('#insert-bracket-match-details-dialog .dota2webapi-result td.match-data:eq(' + i + ')'),
+			heroes = getHeroesData(),
+			items = getItemsData();
 
 		$status.text('In progress...')
 			.addClass('loading');
@@ -587,13 +652,23 @@ $(document).ready(function() {
 
 				if ( result.picks_bans.radiant.pick_1 !== undefined ) {
 					radiantPicks = '';
-					for (var j = 1; j <= 5; ++j)
-						radiantPicks += '|t{r}h' + j + '=' + result.picks_bans.radiant['pick_' + j].toLowerCase();
+					for (var j = 1; j <= 5; ++j) {
+						radiantPicks += '|t{r}h' + j + '=';
+						if ((heroId = result.picks_bans.radiant['pick_' + j]) !== null) {
+							if (heroes[heroId] !== undefined)
+								radiantPicks += heroes[heroId].toLowerCase();
+						}
+					}
 					radiantPicks += "\n";
 
 					direPicks = '';
-					for (var j = 1; j <= 5; ++j)
-						direPicks += '|t{d}h' + j + '=' + result.picks_bans.dire['pick_' + j].toLowerCase();
+					for (var j = 1; j <= 5; ++j) {
+						direPicks += '|t{d}h' + j + '=';
+						if ((heroId = result.picks_bans.dire['pick_' + j]) !== null) {
+							if (heroes[heroId] !== undefined)
+								direPicks += heroes[heroId].toLowerCase();
+						}
+					}
 					direPicks += "\n";
 				} else {
 					radiantPicks = '|t{r}h1= |t{r}h2= |t{r}h3= |t{r}h4= |t{r}h5=\n';
