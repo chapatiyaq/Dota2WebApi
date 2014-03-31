@@ -50,7 +50,9 @@ $wgResourceModules += array(
 			'jquery.ui.dialog'
 		),
 		'messages' => array(
-			'dota2webapi-detected-matchid-number'
+			'dota2webapi-detected-matchid-number',
+			'dota2webapi-heroes.json',
+			'dota2webapi-items.json'
 		)
 	)
 );
@@ -62,11 +64,6 @@ $wgAutoloadClasses['ApiDota2WebApi'] = $dir . 'ApiDota2WebApi.php';
  
 // Map module name to class name
 $wgAPIModules['dota2webapi'] = 'ApiDota2WebApi';
- 
-$wgApiDota2WebApiFiles = array(
-	'heroes' => $dir . 'heroes.json',
-	'items' => $dir . 'items.json'
-);
 
 $extensionPath = (!isset($wgExtensionAssetsPath) || $wgExtensionAssetsPath === false) ? $wgScriptPath . '/extensions' : $wgExtensionAssetsPath;
 $wgDota2WebApiImagePath = $extensionPath . '/Dota2WebApi/modules/images/';

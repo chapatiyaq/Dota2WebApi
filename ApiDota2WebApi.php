@@ -4,8 +4,6 @@ class ApiDota2WebApiException extends Exception { }
 class ApiDota2WebApi extends ApiBase {
 	private $_url;
 	private $_match_id;
-	private $_heroes;
-	private $_items;
 	private $_match_details;
 	private $_player_summaries;
 	private $_player_names;
@@ -27,7 +25,6 @@ class ApiDota2WebApi extends ApiBase {
 			if ($this->_match_id <= 0) {
 				throw new ApiDota2WebApiException(wfMessage('dota2webapi-error-non-strictly-positive-match-id')->text());
 			}
-			$this->getHeroesAndItemsData();
 			$this->getMatchInfo();
 		} catch (Exception $e) {
 			$error = true;
@@ -40,6 +37,8 @@ class ApiDota2WebApi extends ApiBase {
 			array('isresult' => !$error ? 1 : 0));
 		$this->getResult()->addValue(null, $this->getModuleName(),
 			array('result' => $this->_result));
+		$this->getResult()->addValue(null, $this->getModuleName(),
+			array('errormsg' => $this->_error_msg));
 		
 		return true;
 	}
@@ -57,51 +56,6 @@ class ApiDota2WebApi extends ApiBase {
 		$this->cond_radiant_win = isset($cond['radiant_win']);
 		$this->cond_teams = isset($cond['teams']);
 		$this->cond_start_time = isset($cond['start_time']);
-	}
-
-	private function getHeroesAndItemsData() {
-		global $wgApiDota2WebApiFiles;
-
-		$data = self::parseJSON($wgApiDota2WebApiFiles['heroes']);
-		$heroes = array();
-		foreach ($data->heroes as $hero) {
-			$hero_name = str_replace('\'', '', $hero->localized_name);
-			$heroes[$hero->id] = $hero_name;
-		}
-		
-		$data = self::parseJSON($wgApiDota2WebApiFiles['items']);
-		$items = array();
-		foreach ($data->items as $item) {
-			$item_name = str_replace('_', ' ', $item->name);
-			if (!strncmp($item_name, 'recipe', 6)) {
-				$item_name = 'recipe';
-			}
-			$items[$item->id] = $item_name;
-		}
-
-		$items[18]  = 'band of elvenskin';
-		$items[26]  = 'morbid mask';
-		$items[106] = 'necro1';
-		$items[141] = 'daedalus';
-		$items[149] = 'crystalys';
-		$items[152] = 'shadow blade';
-		$items[185] = 'drums';
-		$items[193] = 'necro2';
-		$items[194] = 'necro3';
-		$items[196] = 'diffusal2';
-
-		$this->_heroes = $heroes;
-		$this->_items = $items;
-
-		return true;
-	}
-
-	private function parseJSON($filename) {
-		if (file_exists($filename)) {
-			$contents = file_get_contents($filename);
-			return json_decode($contents);
-		}
-		return array();
 	}
 
 	private function getMatchInfo() {
@@ -217,7 +171,7 @@ class ApiDota2WebApi extends ApiBase {
 					$type = 'ban';
 				}
 				$count = ++$picks_bans_count[$team][$type];
-				$this->_result->picks_bans[$team][$type . '_' . $count] = $this->_heroes[$pick_ban->hero_id];
+				$this->_result->picks_bans[$team][$type . '_' . $count] = $pick_ban->hero_id;
 			}
 		}
 	}
@@ -280,7 +234,7 @@ class ApiDota2WebApi extends ApiBase {
 	}
 
 	private function getPlayerDetails($player) {
-		$playerDetails = new Dota2WebApiPlayer($this->_heroes, $this->_items);
+		$playerDetails = new Dota2WebApiPlayer();
 		$playerDetails->setPersonaNames($this->_persona_names);
 		$playerDetails->setData($player);
 		return $playerDetails;

@@ -24,15 +24,13 @@ class Dota2WebApiPlayer {
 	public $bearitem_6;
 
 	private $_player;
-	private $_items;
+	/*private $_heroes;
+	private $_items;*/
 	private $_persona_names;
 
 	const ANONYMOUS = 4294967295;
 
-	public function __construct($heroes, $items) {
-		$this->_items = $items;
-		$this->_heroes = $heroes;
-	}
+	public function __construct() {}
 
 	public function setPersonaNames($persona_names) {
 		$this->_persona_names = $persona_names;
@@ -46,7 +44,7 @@ class Dota2WebApiPlayer {
 	
 	private function setDataGeneral() {
 		$this->name = self::getPlayerPersonaName($this->_player->account_id);
-		$this->hero = $this->_heroes[$this->_player->hero_id];
+		$this->hero = $this->_player->hero_id;
 		$this->level = $this->_player->level;
 		$this->kills = $this->_player->kills;
 		$this->deaths = $this->_player->deaths;
@@ -77,7 +75,7 @@ class Dota2WebApiPlayer {
 	private function setDataItems() {
 		for ($i = 0; $i < 6; $i++) {
 			if ($this->_player->{'item_' . $i} != 0) {
-				$this->{'item_' . ($i + 1)} = $this->_items[$this->_player->{'item_' . $i}];
+				$this->{'item_' . ($i + 1)} = $this->_player->{'item_' . $i};
 			} else {
 				$this->{'item_' . ($i + 1)} = '';
 			}
@@ -86,7 +84,7 @@ class Dota2WebApiPlayer {
 		if ($this->_player->hero_id == 80) {
 			for ($i = 0; $i < 6; $i++) {
 				if ($this->_player->additional_units[0]->{'item_' . $i} != 0) {
-					$this->{'bearitem_' . ($i + 1)} = $this->_items[$this->_player->additional_units[0]->{'item_' . $i}];
+					$this->{'bearitem_' . ($i + 1)} = $this->_player->additional_units[0]->{'item_' . $i};
 				} else {
 					$this->{'bearitem_' . ($i + 1)} = '';
 				}
