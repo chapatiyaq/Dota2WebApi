@@ -229,11 +229,12 @@ $(document).ready(function() {
 							}
 						}
 						
-						sStart = '{{MatchSeries\n';
-						sStart += '|Team1=' + team1 + ' |team1score=' + team1Score + '\n';
-						sStart += '|Team2=' + team2 + ' |team2score=' + team2Score + '\n';
-						sStart += '|Date=' + date + '\n';
-						sEnd += '}}\n';
+						sStart = '{{Match series start\n';
+						sStart += '|team1=' + team1 + ' |team1score=' + team1Score + '\n';
+						sStart += '|team2=' + team2 + ' |team2score=' + team2Score + '\n';
+						sStart += '|date=' + date + '\n';
+						sStart += '}}\n';
+						sEnd += '{{Match series end}}\n';
 						
 						s = sStart + sEnd;
 					} else if ($checked.attr('class') == 'match-radio') {
@@ -294,105 +295,116 @@ $(document).ready(function() {
 		})
 		.done( function ( data ) {
 			var radiantPicks, direPicks, radiantBans, direBans,
-				start = '{{MatchSeries/Stats\n',
+				start = '{{Match series stats start\n',
+				middle = '{{Match series scoreboard header}}\n',
 				end = '';
 
-			start += '|MatchID=' + vars.matchIDs[i] + ' ';
+			start += '|matchID=' + vars.matchIDs[i] + ' ';
 
 			if (data.dota2webapi.isresult) {
 				var result = data.dota2webapi.result;
 
 				start += '|VOD=' + '\n';
-				start += '|RadiantKills=' + result.kills.radiant + ' ';
-				start += '|DireKills=' + result.kills.dire + '\n';
 
 				if ( result.picks_bans.radiant.pick_1 !== undefined ) {
-					radiantPicks = "{{MatchSeries/Picks";
+					//radiantPicks = "{{MatchSeries/Picks";
+					radiantPicks = [];
 					for (var j = 1; j <= 5; ++j) {
 						var hero;
-						radiantPicks += '|' + j + '=';
 						if ((heroId = result.picks_bans.radiant['pick_' + j]) !== null) {
-							if (heroes[heroId] !== undefined)
-								radiantPicks += heroes[heroId].toLowerCase();
+							radiantPicks.push(heroes[heroId] !== undefined ? heroes[heroId].toLowerCase() : '');
+						} else {
+							radiantPicks.push('');
 						}
 					}
-					radiantPicks += "}}\n";
+					//radiantPicks += "}}\n";
 
-					direPicks = "{{MatchSeries/Picks";
+					//direPicks = "{{MatchSeries/Picks";
+					direPicks = [];
 					for (var j = 1; j <= 5; ++j) {
-						direPicks += '|' + j + '=';
+						var hero;
 						if ((heroId = result.picks_bans.dire['pick_' + j]) !== null) {
-							if (heroes[heroId] !== undefined)
-								direPicks += heroes[heroId].toLowerCase();
+							direPicks.push(heroes[heroId] !== undefined ? heroes[heroId].toLowerCase() : '');
+						} else {
+							direPicks.push('');
 						}
 					}
-					direPicks += "}}\n";
+					//direPicks += "}}\n";
 
-					radiantBans = "{{MatchSeries/Bans";
+					//radiantBans = "{{MatchSeries/Bans";
+					radiantBans = [];
 					for (var j = 1; j <= 5; ++j) {
-						radiantBans += '|' + j + '=';
+						var hero;
 						if ((heroId = result.picks_bans.radiant['ban_' + j]) !== null) {
-							if (heroes[heroId] !== undefined)
-								radiantBans += heroes[heroId].toLowerCase();
+							radiantBans.push(heroes[heroId] !== undefined ? heroes[heroId].toLowerCase() : '');
+						} else {
+							radiantBans.push('');
 						}
 					}
-					radiantBans += "}}\n";
+					//radiantBans += "}}\n";
 
-					direBans = "{{MatchSeries/Bans";
+					//direBans = "{{MatchSeries/Bans";
+					direBans = [];
 					for (var j = 1; j <= 5; ++j) {
-						direBans += '|' + j + '=';
+						var hero;
 						if ((heroId = result.picks_bans.dire['ban_' + j]) !== null) {
-							if (heroes[heroId] !== undefined)
-								direBans += heroes[heroId].toLowerCase();
+							direBans.push(heroes[heroId] !== undefined ? heroes[heroId].toLowerCase() : '');
+						} else {
+							direBans.push('');
 						}
 					}
-					direBans += "}}\n";
+					//direBans += "}}\n";
 				} else {
-					radiantPicks = '{{MatchSeries/Picks|1= |2= |3= |4= |5= }}\n';
-					direPicks    = '{{MatchSeries/Picks|1= |2= |3= |4= |5= }}\n';
-					radiantBans  = '{{MatchSeries/Bans|1= |2= |3= |4= |5= }}\n';
-					direBans     = '{{MatchSeries/Bans|1= |2= |3= |4= |5= }}\n';
-				}
-
-				end += '|Scoreboard=yes\n';
-
-				var factions = {R: 'radiant', D: 'dire'};
-				for (var t in factions) {
-					for (var j = 1; j <= 5; ++j) {
-						var player = result.players[factions[t]]['player_' + j];
-						end += '|' + t + 'Player' + j + '=';
-						end += '{{MatchSeries/PlayerRow|player=';
-						end += player.name + ' ';
-						end += '|hero=' + (heroes[player.hero] !== undefined ? heroes[player.hero].toLowerCase() : '') + ' ';
-						end += '|lvl='  + player.level;
-						end += '|k='    + player.kills;
-						end += '|d='    + player.deaths;
-						end += '|a='    + player.assists;
-						end += '|lh='   + player.last_hits;
-						end += '|den='  + player.denies;
-						end += '|gpm='  + player.gold_per_min;
-						end += '|xpm='  + player.xp_per_min;
-						end += '|items={{MatchSeries/Items';
-						for (var k = 1; k <= 6; ++k) {
-							end += '|' + k + '=';
-							if (items[player['item_' + k]] !== undefined)
-								end += items[player['item_' + k]];
-						}
-						end += '}} ';
-						if (player.hero == 'Lone Druid') {
-							end += '|bearitems={{MatchSeries/Items';
-							for (var k = 1; k <= 6; ++k) {
-							end += '|' + k + '=';
-							if (items[player['bearitem_' + k]] !== undefined)
-								end += items[player['bearitem_' + k]];
-							}
-							end += '}} ';
-						}
-						end += '}}\n';
-					}
+					radiantPicks = ['','','','',''];
+					direPicks    = ['','','','',''];
+					radiantBans  = ['','','','',''];
+					direBans     = ['','','','',''];
 				}
 				
-				end += '}}\n';
+				//start += '|radiantKills=' + result.kills.radiant + ' ';
+				//start += '|direKills=' + result.kills.dire + '\n';
+
+				var factions = {R: 'radiant', D: 'dire'};
+				var factionRosters = {'radiant': '', 'dire': ''};
+				for (var t in factions) {
+					var factionRoster = '{{Match series faction|faction=' + factions[t] + '|kills=' + result.kills[factions[t]] + '}}\n';
+					for (var j = 1; j <= 5; ++j) {
+						var player = result.players[factions[t]]['player_' + j];
+						factionRoster += '{{Match series player|player=';
+						factionRoster += player.name + ' ';
+						factionRoster += '|hero=' + (heroes[player.hero] !== undefined ? heroes[player.hero].toLowerCase() : '') + ' ';
+						factionRoster += '|lvl='  + player.level;
+						factionRoster += '|k='    + player.kills;
+						factionRoster += '|d='    + player.deaths;
+						factionRoster += '|a='    + player.assists;
+						factionRoster += '|lh='   + player.last_hits;
+						factionRoster += '|den='  + player.denies;
+						factionRoster += '|gpm='  + player.gold_per_min;
+						factionRoster += '|xpm='  + player.xp_per_min;
+						factionRoster += '|items=';
+						for (var k = 1; k <= 6; ++k) {
+							if (items[player['item_' + k]] !== undefined)
+								factionRoster += items[player['item_' + k]];
+							if (k < 6) {
+								factionRoster += ',';
+							}
+						}
+						if (player.hero == 'Lone Druid') {
+							factionRoster += '|bearitems=';
+							for (var k = 1; k <= 6; ++k) {
+								if (items[player['bearitem_' + k]] !== undefined)
+									factionRoster += items[player['bearitem_' + k]];
+								if (k < 6) {
+									factionRoster += ',';
+								}
+							}
+						}
+						factionRoster += '}}\n';
+					}
+					factionRosters[factions[t]] = factionRoster;
+				}
+				
+				end += '{{Match series stats end}}\n';
 				
 				vars.ok |= true;
 				vars.teams.push({
@@ -415,8 +427,11 @@ $(document).ready(function() {
 				$matchData.data('direPicks', direPicks);
 				$matchData.data('radiantBans', radiantBans);
 				$matchData.data('direBans', direBans);
+				$matchData.data('radiantRoster', factionRosters.radiant);
+				$matchData.data('direRoster', factionRosters.dire);
 				$matchData.data('startTime', result.start_time);
 				$matchData.data('wikitextStart', start);
+				$matchData.data('wikitextMiddle', middle);
 				$matchData.data('wikitextEnd', end);
 				$status.text('Success');
 			} else {
@@ -497,9 +512,11 @@ $(document).ready(function() {
 			radiantScore, direScore,
 			radiantPicks, direPicks,
 			radiantBans, direBans,
+			radiantRoster, direRoster,
 			team1Score, team2Score,
 			team1Picks, team2Picks,
 			team1Bans, team2Bans,
+			team1Roster, team2Roster,
 			radiantSide,
 			text = '';
 		winningTeam = winningTeamName == params.team1 ? 1 : 2;
@@ -522,17 +539,25 @@ $(document).ready(function() {
 		team1Bans = radiantSide == 'left' ? radiantBans : direBans;
 		team2Bans = radiantSide == 'left' ? direBans : radiantBans;
 
-		text += '|Match' + params.matchIndex + '={{MatchSeries/Game |radiant=' + radiantSide + '\n';
-		text += '|Team1=' + params.team1 + ' |Team1Kills=' + team1Score + '\n';
-		text += '|Team2=' + params.team2 + ' |Team2Kills=' + team2Score + '\n';
-		text += '|Winner=' + winningTeam + '}}\n';
+		radiantRoster = $('#insert-full-match-details-dialog .dota2webapi-result .match-' + params.row + ' .match-data').data('radiantRoster');
+		direRoster = $('#insert-full-match-details-dialog .dota2webapi-result .match-' + params.row + ' .match-data').data('direRoster');
+		team1Roster = radiantSide == 'left' ? radiantRoster : direRoster;
+		team2Roster = radiantSide == 'left' ? direRoster : radiantRoster;
 
-		text += '\n|Match' + params.matchIndex + 'Stats=';
+		text += '{{Match series game |radiant=' + radiantSide + '\n';
+		text += '|team1=' + params.team1 + ' |team1Kills=' + team1Score + '\n';
+		text += '|team2=' + params.team2 + ' |team2Kills=' + team2Score + '\n';
+		text += '|winner=' + winningTeam + '}}\n';
+
 		text += $('#insert-full-match-details-dialog .dota2webapi-result .match-' + params.row + ' .match-data').data('wikitextStart');
-		text += '|Team1Picks=' + team1Picks;
-		text += '|Team2Picks=' + team2Picks;
-		text += '|Team1Bans=' + team1Bans;
-		text += '|Team2Bans=' + team2Bans;
+		text += '|team1Picks=' + team1Picks.join(',') + '\n';
+		text += '|team2Picks=' + team2Picks.join(',') + '\n';
+		text += '|team1Bans=' + team1Bans.join(',') + '\n';
+		text += '|team2Bans=' + team2Bans.join(',') + '\n';
+		text += '}}\n';
+		text += $('#insert-full-match-details-dialog .dota2webapi-result .match-' + params.row + ' .match-data').data('wikitextMiddle');
+		text += team1Roster;
+		text += team2Roster;
 		text += $('#insert-full-match-details-dialog .dota2webapi-result .match-' + params.row + ' .match-data').data('wikitextEnd');
 
 		return {winningTeam: winningTeam, 'text': text};
