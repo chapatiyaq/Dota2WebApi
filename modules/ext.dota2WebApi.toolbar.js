@@ -712,7 +712,7 @@ $(document).ready(function() {
 			
 				$radiantTeam.text(result.teams['radiant']);
 				$direTeam.text(result.teams['dire']);
-				if (result.radiant_win) {
+				if (result.radiant_win !== undefined) {
 					$radiantTeam.addClass('winning-faction');
 					$matchData.data('winningFaction', 'radiant');
 				} else {
